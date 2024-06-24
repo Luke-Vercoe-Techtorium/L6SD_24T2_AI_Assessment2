@@ -1,2 +1,4 @@
 /pyenv
 /model.bin
+/__pycache__
+/.pytest_cache
