@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import math
 from sklearn.metrics import root_mean_squared_error
 from sklearn.model_selection import train_test_split
@@ -10,6 +11,7 @@ from sklearn.ensemble import GradientBoostingRegressor
 from xgboost import XGBRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import AdaBoostRegressor, ExtraTreesRegressor
+from joblib import dump, load
 
 data = pd.read_excel("Net_Worth_Data.xlsx")
 
@@ -27,18 +29,18 @@ data.info()
 
 # anonymise the data
 anonymised_data = data.drop(["Client Name", "Client e-mail", "Profession", "Education", "Country"], axis=1)
-input = anonymised_data.drop(["Net Worth"], axis=1).values
-output = anonymised_data["Net Worth"].values.reshape(-1, 1)
+data_input = anonymised_data.drop(["Net Worth"], axis=1).values
+data_output = anonymised_data["Net Worth"].values.reshape(-1, 1)
 
 # print out data shape
-print(input.shape)
-print(output.shape)
+print(data_input.shape)
+print(data_output.shape)
 
 input_scalar = StandardScaler()
-scaled_input = input_scalar.fit_transform(input)
+scaled_input = input_scalar.fit_transform(data_input)
 
 output_scalar = StandardScaler()
-scaled_output = output_scalar.fit_transform(output)
+scaled_output = output_scalar.fit_transform(data_output)
 
 random_state = 42
 train_input, test_input, train_output, test_output = train_test_split(scaled_input, scaled_output, test_size=0.2, random_state=random_state)
@@ -82,3 +84,33 @@ print(f"The best model is {models[best_model]}")
 predict = models[best_model].predict(scaled_input)
 error = root_mean_squared_error(scaled_output, predict)
 print(f"Error on full dataset: {error}")
+
+dump(models[best_model], "model.bin")
+loaded_model = load("model.bin")
+
+gender = int(input("Enter gender (0 for female, 1 for male): "))
+age = int(input("Enter age: "))
+income = float(input("Enter income: "))
+dept = float(input("Enter credit card dept: "))
+healthcare = int(input("Enter healthcare cost: "))
+inherited = float(input("Enter amount inherited: "))
+stocks = float(input("Enter stocks: "))
+bonds = float(input("Enter Bonds: "))
+funds = float(input("Enter mutual funds: "))
+etf = float(input("Enter ETFs: "))
+reit = float(input("Enter REITs: "))
+
+predict = loaded_model.predict(np.array([
+    gender,
+    age,
+    income,
+    dept,
+    healthcare,
+    inherited,
+    stocks,
+    bonds,
+    funds,
+    etf,
+    reit,
+]).reshape(1, -1))
+print(f"Predicted net worth: {output_scalar.transform(predict)}")
